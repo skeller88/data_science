@@ -40,20 +40,16 @@ Theta2_grad = zeros(size(Theta2));
 %         computed in ex4.m
 
 % convert y's to vectors of 1s and 0s
-y_matrix = zeros(m, num_labels);
-for obs=1:m,
-  y_matrix(obs, y(obs)) = 1;
-endfor
+y_matrix = [1:num_labels] == y;
 
 a1 = [ones(m, 1), X];
 z2 = a1 * Theta1';
-a2 = [ones(m, 1), sigmoid(z2)];
-a3 = sigmoid(a2 * Theta2');
-h = a3;
+a2 = [ones(size(z2, 1), 1), sigmoid(z2)];
+z3 = a2 * Theta2';
+h = a3 = sigmoid(z3);
 
-% fprintf('size of X - %f\n', size(X))
+% fprintf('size of a3 - %f\n', size(a3))
 % fprintf('size of y_matrix - %f\n', size(y_matrix))
-% fprintf('size of Theta1 - %f\n', size(Theta1))
 % fprintf('bias units removed - %f\n', size(Theta1(:, 2:end)))
 
 data_loss = (1/m) * sum(sum(-y_matrix .* log(h) - (1 - y_matrix) .* log(1 - h), 2));
@@ -77,35 +73,31 @@ J = data_loss + reg_loss;
 %               over the training examples if you are implementing it for the 
 %               first time.
 
+d3 = a3 - y_matrix;
+% d2 =  d3 * Theta2(:, 2:end)' .* sigmoidGradient(z2);
+d2 = (d3*Theta2 .* sigmoidGradient([ones(size(z2, 1), 1) z2]))(:, 2:end);
 
+% fprintf('size of a1 - %f\n', size(a1))
+% fprintf('size of Theta1 - %f\n', size(Theta1))
+% fprintf('size of z2 - %f\n', size(z2))
+% fprintf('size of d2 - %f\n', size(d2))
 
+Delta1 = d2' * a1;
+Delta2 = d3' * a2;
+Theta1_grad = Delta1 ./ m;
+Theta2_grad = Delta2 ./ m;
 
 % Part 3: Implement regularization with the cost function and gradients.
 %
-%         Hint: You can implement this around the code for
+%         hint: You can implement this around the code for
 %               backpropagation. That is, you can compute the gradients for
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
+Theta1_reg = (lambda / m) * [zeros(size(Theta1,1), 1) Theta1(:, 2:end)];
+Theta2_reg = (lambda / m) * [zeros(size(Theta2,1), 1) Theta2(:, 2:end)];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Theta1_grad = Theta1_grad + Theta1_reg;
+Theta2_grad = Theta2_grad + Theta2_reg;
 
 % -------------------------------------------------------------
 
